@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OnchoScan — Breast Cancer Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css" />
+</head>
+<body>
+
+<!-- ───── HEADER ───── -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <svg width="34" height="34" viewBox="0 0 34 34" fill="none">
+        <circle cx="17" cy="17" r="16" stroke="#e05b4b" stroke-width="2"/>
+        <circle cx="17" cy="17" r="8" fill="#e05b4b" opacity="0.2"/>
+        <circle cx="17" cy="17" r="3" fill="#e05b4b"/>
+        <line x1="17" y1="1" x2="17" y2="7" stroke="#e05b4b" stroke-width="2" stroke-linecap="round"/>
+        <line x1="17" y1="27" x2="17" y2="33" stroke="#e05b4b" stroke-width="2" stroke-linecap="round"/>
+        <line x1="1" y1="17" x2="7" y2="17" stroke="#e05b4b" stroke-width="2" stroke-linecap="round"/>
+        <line x1="27" y1="17" x2="33" y2="17" stroke="#e05b4b" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span class="logo-text">OnchoScan</span>
+    </div>
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="predictor">Predictor</button>
+      <button class="tab-btn" data-tab="dashboard">Model Dashboard</button>
+      <button class="tab-btn" data-tab="about">About</button>
+    </nav>
+    <div class="header-badge">
+      <span class="pulse-dot"></span>
+      <span>ANN + LR Ensemble</span>
+    </div>
+  </div>
+</header>
+
+<!-- ───── HERO ───── -->
+<section class="hero">
+  <div class="hero-bg-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">Breast Cancer Wisconsin Diagnostic Dataset</div>
+    <h1 class="hero-title">
+      AI-Powered<br>
+      <em>Tumour Classification</em>
+    </h1>
+    <p class="hero-sub">
+      Enter 30 cell nucleus measurements from a fine needle aspirate (FNA) biopsy.
+      Our trained ANN model predicts whether the mass is <strong>Malignant</strong> or <strong>Benign</strong>
+      with over 97% accuracy.
+    </p>
+    <div class="hero-stats" id="heroStats">
+      <div class="stat-pill"><span class="s-num">569</span><span class="s-label">Patients</span></div>
+      <div class="stat-pill"><span class="s-num">30</span><span class="s-label">Features</span></div>
+      <div class="stat-pill"><span class="s-num" id="heroAcc">—</span><span class="s-label">ANN Accuracy</span></div>
+      <div class="stat-pill"><span class="s-num" id="heroAuc">—</span><span class="s-label">ROC-AUC</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--              PREDICTOR TAB                 -->
+<!-- ═══════════════════════════════════════════ -->
+<main class="tab-content active" id="tab-predictor">
+
+  <div class="container">
+    <!-- CONTROLS BAR -->
+    <div class="controls-bar">
+      <div class="model-select-group">
+        <label>Model</label>
+        <select id="modelSelect">
+          <option value="best">Best (Auto)</option>
+          <option value="ann">ANN — MLP</option>
+          <option value="lr">Logistic Regression</option>
+        </select>
+      </div>
+      <div class="sample-btns">
+        <span>Load Sample:</span>
+        <button class="btn-sample malignant" onclick="loadSample(0)">Malignant Case</button>
+        <button class="btn-sample benign"    onclick="loadSample(1)">Benign Case</button>
+        <button class="btn-clear"            onclick="clearForm()">Clear All</button>
+      </div>
+    </div>
+
+    <!-- FEATURE GROUPS -->
+    <form id="predForm" onsubmit="return false">
+
+      <!-- GROUP 1: Mean Values -->
+      <div class="feature-group">
+        <div class="group-header">
+          <div class="group-index">01</div>
+          <div>
+            <div class="group-title">Mean Cell Nucleus Features</div>
+            <div class="group-sub">Average measurements computed for each image</div>
+          </div>
+        </div>
+        <div class="feature-grid" id="group-mean"></div>
+      </div>
+
+      <!-- GROUP 2: SE Values -->
+      <div class="feature-group">
+        <div class="group-header">
+          <div class="group-index">02</div>
+          <div>
+            <div class="group-title">Standard Error Features</div>
+            <div class="group-sub">Standard error of each measurement across the image</div>
+          </div>
+        </div>
+        <div class="feature-grid" id="group-se"></div>
+      </div>
+
+      <!-- GROUP 3: Worst Values -->
+      <div class="feature-group">
+        <div class="group-header">
+          <div class="group-index">03</div>
+          <div>
+            <div class="group-title">"Worst" (Largest) Features</div>
+            <div class="group-sub">Mean of the three largest values for each cell nucleus</div>
+          </div>
+        </div>
+        <div class="feature-grid" id="group-worst"></div>
+      </div>
+
+      <!-- PREDICT BUTTON -->
+      <div class="predict-row">
+        <button type="submit" class="btn-predict" id="predictBtn" onclick="runPrediction()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          Run Prediction
+        </button>
+        <div class="predict-hint">All 30 fields must be filled • Values are auto-scaled by the model</div>
+      </div>
+
+    </form>
+
+    <!-- RESULT PANEL -->
+    <div class="result-panel hidden" id="resultPanel">
+      <div class="result-inner">
+
+        <div class="result-left">
+          <div class="result-label-text" id="resultLabel">BENIGN</div>
+          <div class="result-class-badge" id="resultBadge">Benign</div>
+          <div class="result-conf">
+            Confidence: <strong id="resultConf">—</strong>
+          </div>
+          <div class="risk-indicator" id="riskIndicator">
+            <div class="risk-label">Risk Level</div>
+            <div class="risk-value" id="riskValue">—</div>
+          </div>
+        </div>
+
+        <div class="result-right">
+          <div class="prob-bars">
+            <div class="prob-row">
+              <span class="prob-name malignant-text">Malignant</span>
+              <div class="prob-track">
+                <div class="prob-fill malignant-fill" id="malignantBar" style="width:0%"></div>
+              </div>
+              <span class="prob-pct" id="malignantPct">—</span>
+            </div>
+            <div class="prob-row">
+              <span class="prob-name benign-text">Benign</span>
+              <div class="prob-track">
+                <div class="prob-fill benign-fill" id="benignBar" style="width:0%"></div>
+              </div>
+              <span class="prob-pct" id="benignPct">—</span>
+            </div>
+          </div>
+
+          <div class="notable-features">
+            <div class="nf-title">Key Contributing Features</div>
+            <div id="notableList"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="disclaimer">
+        ⚠ This tool is for educational and research purposes only. It is NOT a substitute for professional medical diagnosis.
+      </div>
+    </div>
+
+  </div><!-- /container -->
+</main>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--             DASHBOARD TAB                  -->
+<!-- ═══════════════════════════════════════════ -->
+<main class="tab-content" id="tab-dashboard">
+  <div class="container">
+
+    <div class="dash-title">Model Performance Dashboard</div>
+
+    <!-- MODEL CARDS -->
+    <div class="model-cards" id="modelCards">
+      <div class="model-card" id="cardLR">
+        <div class="mc-header">
+          <div class="mc-icon lr-icon">LR</div>
+          <div>
+            <div class="mc-name">Logistic Regression</div>
+            <div class="mc-desc">Linear classifier with L2 regularization</div>
+          </div>
+        </div>
+        <div class="mc-metrics" id="metricsLR">Loading…</div>
+        <div class="mc-cm" id="cmLR"></div>
+      </div>
+
+      <div class="model-card" id="cardANN">
+        <div class="mc-header">
+          <div class="mc-icon ann-icon">ANN</div>
+          <div>
+            <div class="mc-name">Artificial Neural Network</div>
+            <div class="mc-desc">MLP · 30 → 128 → 64 → 32 → 2</div>
+          </div>
+        </div>
+        <div class="mc-metrics" id="metricsANN">Loading…</div>
+        <div class="mc-cm" id="cmANN"></div>
+      </div>
+    </div>
+
+    <!-- ROC CURVE -->
+    <div class="roc-section">
+      <div class="section-title">ROC Curve — ANN Model</div>
+      <canvas id="rocChart" height="100"></canvas>
+    </div>
+
+    <!-- TOP FEATURES -->
+    <div class="feat-section">
+      <div class="section-title">Top 10 Most Discriminative Features</div>
+      <div id="topFeatures"></div>
+    </div>
+
+  </div>
+</main>
+
+<!-- ═══════════════════════════════════════════ -->
+<!--               ABOUT TAB                    -->
+<!-- ═══════════════════════════════════════════ -->
+<main class="tab-content" id="tab-about">
+  <div class="container about-container">
+    <div class="about-card">
+      <h2>About the Dataset</h2>
+      <p>The <strong>Breast Cancer Wisconsin (Diagnostic) Dataset</strong> was created by Dr. William H. Wolberg at the University of Wisconsin. It contains features computed from digitized images of fine needle aspirate (FNA) biopsies of breast masses.</p>
+      <p>Features describe characteristics of the cell nuclei present in the image, based on the work of W.N. Street, W.H. Wolberg, and O.L. Mangasarian (1993).</p>
+      <div class="about-grid">
+        <div class="about-item"><span class="ai-label">Samples</span><span class="ai-val">569</span></div>
+        <div class="about-item"><span class="ai-label">Features</span><span class="ai-val">30 numeric</span></div>
+        <div class="about-item"><span class="ai-label">Classes</span><span class="ai-val">2 (M / B)</span></div>
+        <div class="about-item"><span class="ai-label">Missing values</span><span class="ai-val">None</span></div>
+      </div>
+    </div>
+
+    <div class="about-card">
+      <h2>The 10 Core Features (×3 statistics)</h2>
+      <p>Each of the 10 nucleus characteristics is measured as <em>mean</em>, <em>standard error</em>, and <em>worst</em> (largest), giving 30 total features.</p>
+      <div class="feature-list-about">
+        <div class="fla-item">1. Radius — mean distances from center to points on the perimeter</div>
+        <div class="fla-item">2. Texture — standard deviation of gray-scale values</div>
+        <div class="fla-item">3. Perimeter</div>
+        <div class="fla-item">4. Area</div>
+        <div class="fla-item">5. Smoothness — local variation in radius lengths</div>
+        <div class="fla-item">6. Compactness — perimeter² / area − 1.0</div>
+        <div class="fla-item">7. Concavity — severity of concave portions of the contour</div>
+        <div class="fla-item">8. Concave points — number of concave portions</div>
+        <div class="fla-item">9. Symmetry</div>
+        <div class="fla-item">10. Fractal dimension — coastline approximation − 1</div>
+      </div>
+    </div>
+
+    <div class="about-card">
+      <h2>Model Architecture</h2>
+      <div class="arch-diagram">
+        <div class="arch-layer input-layer"><span>Input<br>30</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-layer hidden-layer"><span>Dense<br>128 ReLU</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-layer hidden-layer"><span>Dense<br>64 ReLU</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-layer hidden-layer"><span>Dense<br>32 ReLU</span></div>
+        <div class="arch-arrow">→</div>
+        <div class="arch-layer output-layer"><span>Output<br>2 Softmax</span></div>
+      </div>
+      <p>Optimizer: Adam · Loss: Cross-Entropy · L2 Reg: α=0.001 · Early Stopping · Adaptive LR</p>
+    </div>
+
+    <div class="about-card">
+      <h2>Tech Stack</h2>
+      <div class="tech-list">
+        <div class="tech-item"><span class="tech-badge">Python</span> scikit-learn, numpy, pandas, joblib</div>
+        <div class="tech-item"><span class="tech-badge">Backend</span> Flask + Flask-CORS REST API</div>
+        <div class="tech-item"><span class="tech-badge">Frontend</span> Vanilla JS + HTML5 + CSS3</div>
+        <div class="tech-item"><span class="tech-badge">Charts</span> Chart.js (CDN)</div>
+        <div class="tech-item"><span class="tech-badge">Models</span> Logistic Regression + ANN (MLPClassifier)</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
