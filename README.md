@@ -333,4 +333,14 @@ Create `.vscode/tasks.json`:
 
 ---
 
+[Landing Page](screenshots/landingpage.png)
+[Malignantdata](screenshots/malignantdata.png)
+[Malignantdata-2](screenshots/malignantdata-2.png)
+[MalignantPredict-Run](screenshots/malignantpredic-run.png)
+[Benigndata](screenshots/Benigndata.png)
+[Benigndata-2](screenshots/benigndata-2.png)
+[Benignpredict-run](screenshots/Benignpredict-run.png)
+[performancedata](Screenshots/performancedata.png)
+[ROC-Curve-ANN Model](screenshots/ROC%20Curve-ANN%20Model.png)
+
 *Built for educational and research purposes. Not a medical diagnostic tool.*
