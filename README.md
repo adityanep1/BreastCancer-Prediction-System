@@ -332,7 +332,7 @@ Create `.vscode/tasks.json`:
 - UCI Machine Learning Repository: [Breast Cancer Wisconsin](https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+(Diagnostic))
 
 ---
-
+See the screenshots Clicking the given name below:
 [Landing Page](screenshots/landingpage.png)
 [Malignantdata](screenshots/malignantdata.png)
 [Malignantdata-2](screenshots/malignantdata-2.png)
